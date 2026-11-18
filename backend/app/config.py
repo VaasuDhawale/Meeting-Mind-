@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     )
 
     # --- Application ---
-    app_name: str = "VideoIntelligence"
+    app_name: str = "MeetingMind"
     app_env: str = "development"
     debug: bool = True
     secret_key: str = "change-me-to-a-random-64-char-string-in-production"
@@ -64,7 +64,7 @@ class Settings(BaseSettings):
         return v
 
     # --- Database ---
-    database_url: str = f"sqlite+aiosqlite:///{BASE_DIR.as_posix()}/videointel.db"
+    database_url: str = f"sqlite+aiosqlite:///{BASE_DIR.as_posix()}/meetingmind.db"
 
     # --- Storage Directories ---
     storage_dir: str = str(BASE_DIR / "storage")
@@ -82,7 +82,7 @@ class Settings(BaseSettings):
     minio_endpoint: str = "localhost:9000"
     minio_access_key: str = "minioadmin"
     minio_secret_key: str = "minioadmin123"
-    minio_bucket_name: str = "videointel"
+    minio_bucket_name: str = "meetingmind"
     minio_use_ssl: bool = False
 
     # --- JWT ---

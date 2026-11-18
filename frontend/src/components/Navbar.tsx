@@ -30,12 +30,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="font-bold text-lg text-white tracking-tight">VideoIntel</span>
+              <span className="font-bold text-lg text-white tracking-tight">MeetingMind</span>
               <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
                 PBL AI Core
               </span>
             </div>
-            <p className="text-xs text-slate-400">Multimodal Meeting & Video Intelligence Report Generator</p>
+            <p className="text-xs text-slate-400">Multimodal Meeting Intelligence & Report Generator</p>
           </div>
         </div>
 

@@ -8,7 +8,7 @@ interface ProcessingOverlayProps {
 
 const STAGES = [
   { label: 'Ingesting & Validating Media', desc: 'Verifying MIME integrity, audio stream, and container headers', icon: Film },
-  { label: 'OpenCV Video Intelligence', desc: 'Computing frame differences, slide transitions & keyframe extraction', icon: Film },
+  { label: 'OpenCV Visual Intelligence', desc: 'Computing frame differences, slide transitions & keyframe extraction', icon: Film },
   { label: 'Speech-to-Text Transcription', desc: 'Transcribing speech audio stream into verbatim text segments', icon: Mic },
   { label: 'AI Semantic Mining & Analysis', desc: 'Extracting Action Items, Decisions, Topics, and Sentiment metrics', icon: BrainCircuit },
   { label: 'Compiling PDF & Word Reports', desc: 'Generating publication-grade PDF & editable DOCX reports and saving to database', icon: FileText },

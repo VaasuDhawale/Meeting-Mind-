@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "videointel-backend"
+name = "meetingmind-backend"
 version = "0.1.0"
-description = "AI-Powered Meeting & Video Intelligence Report Generator — Backend"
+description = "AI-Powered Meeting Intelligence Report Generator — Backend"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

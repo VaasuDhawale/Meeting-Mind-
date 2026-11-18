@@ -1,5 +1,5 @@
 """
-Validation & Error Handling Tests for VideoIntel API.
+Validation & Error Handling Tests for MeetingMind API.
 Tests unsupported files, missing files, invalid payload parameters.
 """
 

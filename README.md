@@ -1,5 +1,5 @@
-# VideoIntel
-### AI-Powered Meeting & Video Intelligence Report Generator
+# MeetingMind
+### AI-Powered Meeting Intelligence & Report Generator
 
 > **PBL Final Year Project** • An end-to-end multimodal intelligence platform that converts recorded video sessions, audio streams, and supporting presentation documents into structured, context-aware, verifiable knowledge reports.
 
@@ -15,12 +15,12 @@
 
 ## Table of Contents
 
-- [A. Project Title and Overview](#videointel)
+- [A. Project Title and Overview](#meetingmind)
 - [B. Table of Contents](#table-of-contents)
 - [C. Problem Statement](#c-problem-statement)
 - [D. Proposed Solution](#d-proposed-solution)
 - [E. Key Features](#e-key-features)
-- [F. Why VideoIntel?](#f-why-videointel)
+- [F. Why MeetingMind?](#f-why-meetingmind)
 - [G. Supported Inputs and Outputs](#g-supported-inputs-and-outputs)
 - [H. System Architecture](#h-system-architecture)
 - [I. Architecture and Design Decisions](#i-architecture-and-design-decisions)
@@ -39,7 +39,7 @@
 - [V. Environment Configuration](#v-environment-configuration)
 - [W. Installation and Setup](#w-installation-and-setup)
 - [X. Docker Setup](#x-docker-setup)
-- [Y. How to Use VideoIntel](#y-how-to-use-videointel)
+- [Y. How to Use MeetingMind](#y-how-to-use-meetingmind)
 - [Z. Faculty Demo Mode](#z-faculty-demo-mode)
 - [AA. Testing and Quality Assurance](#aa-testing-and-quality-assurance)
 - [AB. Security and Privacy](#ab-security-and-privacy)
@@ -71,7 +71,7 @@ Modern academic, engineering, and corporate organizations conduct critical archi
 
 ## D. Proposed Solution
 
-**VideoIntel** transforms raw multimodal meeting recordings into structured, audit-ready, actionable intelligence reports through a multi-stage deterministic and AI pipeline:
+**MeetingMind** transforms raw multimodal meeting recordings into structured, audit-ready, actionable intelligence reports through a multi-stage deterministic and AI pipeline:
 
 $$\text{Video / Audio / Documents} \xrightarrow{\text{Extraction}} \text{Visual Keyframes + Audio WAV + Parsed Text} \xrightarrow{\text{Fusion \& NLP}} \text{Structured Intelligence} \xrightarrow{\text{Compilers}} \text{PDF / DOCX / MD / JSON}$$
 
@@ -123,9 +123,9 @@ $$\text{Video / Audio / Documents} \xrightarrow{\text{Extraction}} \text{Visual 
 
 ---
 
-## F. Why VideoIntel?
+## F. Why MeetingMind?
 
-| Dimension | Standard Speech-to-Text (e.g., Otter, Whisper CLI) | Generic Cloud Summarizers (e.g., ChatGPT paste) | VideoIntel Multimodal Platform |
+| Dimension | Standard Speech-to-Text (e.g., Otter, Whisper CLI) | Generic Cloud Summarizers (e.g., ChatGPT paste) | MeetingMind Multimodal Platform |
 |---|---|---|---|
 | **Visual Ingestion** | None (Audio only) | None (Text only) | **Full OpenCV integration** detects slide changes and extracts keyframe screenshots |
 | **Supporting Material** | Not supported | Requires manual copying | **Direct document parsing** for PDF, PPTX, and TXT agenda fusion |
@@ -213,7 +213,7 @@ flowchart TD
         PDFSvc["pdf_service.py (ReportLab)"]
         DOCXSvc["docx_service.py (python-docx)"]
         DBSession["app/db/session.py"]
-        SQLiteDB[("SQLite: videointel.db")]
+        SQLiteDB[("SQLite: meetingmind.db")]
         FileStore[("Local Disk Storage: /storage")]
     end
 
@@ -283,7 +283,7 @@ flowchart TD
 | **ASGI Server** | Uvicorn 0.30+ | High-performance Python server | Single-worker event loop serving `0.0.0.0:8000` |
 | **Configuration** | Pydantic BaseSettings 2.3+ | Environment variable parsing | Validated type coercion, CORS parsing, default path generation |
 | **Database ORM** | SQLAlchemy 2.0 (Async) | Object relational mapping | Async engine, session context manager, declarative Base models |
-| **Database Driver** | aiosqlite | Async SQLite driver | Standalone zero-setup database driver storing `videointel.db` |
+| **Database Driver** | aiosqlite | Async SQLite driver | Standalone zero-setup database driver storing `meetingmind.db` |
 | **Computer Vision** | OpenCV (`cv2`) 4.10+ | Video frame analysis | Inter-frame luminance subtraction, transition thresholding, JPEG keyframe writing |
 | **Audio Processing** | FFmpeg | Media demuxing | Subprocess execution converting video streams to 16 kHz mono WAV |
 | **Speech-to-Text** | `speech_recognition` | Offline audio transcription | Google Speech recognition engine fallback |
@@ -552,7 +552,7 @@ erDiagram
 ```
 
 ### Local vs. Containerized Modes
-- **Standalone Local Mode (Default)**: Uses SQLite with `aiosqlite` targeting `backend/videointel.db`. Requires zero external database services.
+- **Standalone Local Mode (Default)**: Uses SQLite with `aiosqlite` targeting `backend/meetingmind.db`. Requires zero external database services.
 - **Docker Compose Mode**: Configured in `docker-compose.yml` to target PostgreSQL 16 with `pgvector` on port 5432 using `DATABASE_URL=postgresql+asyncpg://...`.
 
 ---
@@ -587,7 +587,7 @@ p:/PBL Final year project/
 ├── .gitignore                       # Git ignore rules for node_modules, storage, pycache
 ├── docker-compose.yml               # Container definitions for Postgres, Redis, MinIO, Backend, Frontend
 ├── README.md                        # Master project documentation
-├── videointel.db                    # Active SQLite development database
+├── meetingmind.db                    # Active SQLite development database
 │
 ├── backend/                         # FastAPI Backend Application
 │   ├── pyproject.toml               # Python project configuration, dependencies, tools
@@ -660,14 +660,14 @@ Configuration variables are read from `.env` in the project root. If no `.env` f
 
 | Variable | Purpose | Required? | Default / Example Value |
 |---|---|---|---|
-| `APP_NAME` | Name identifier for application | No | `VideoIntelligence` |
+| `APP_NAME` | Name identifier for application | No | `MeetingMindligence` |
 | `APP_ENV` | Application environment | No | `development` |
 | `DEBUG` | Enable debug logs and docs | No | `true` |
 | `SECRET_KEY` | Application secret key | No (in dev) | `change-me-to-a-random-64-char-string` |
 | `BACKEND_HOST` | Host interface for backend | No | `0.0.0.0` |
 | `BACKEND_PORT` | Port for backend server | No | `8000` |
 | `BACKEND_CORS_ORIGINS` | Permitted CORS origins | No | `["http://localhost:5173", "http://127.0.0.1:5173"]` |
-| `DATABASE_URL` | SQLAlchemy async connection URI | No (defaults to SQLite) | `sqlite+aiosqlite:///./videointel.db` |
+| `DATABASE_URL` | SQLAlchemy async connection URI | No (defaults to SQLite) | `sqlite+aiosqlite:///./meetingmind.db` |
 | `OPENAI_API_KEY` | OpenAI API key for Whisper and GPT-4o-mini | No (triggers local fallback) | `sk-...` |
 | `ASSEMBLYAI_API_KEY` | AssemblyAI key for speech-to-text | No (triggers local fallback) | `...` |
 | `GOOGLE_AI_API_KEY` | Gemini API key for Gemini 1.5 Flash | No (triggers local fallback) | `AIzaSy...` |
@@ -745,7 +745,7 @@ docker compose down -v
 
 ---
 
-## Y. How to Use VideoIntel
+## Y. How to Use MeetingMind
 
 1. **Access Web Interface**: Navigate to `http://localhost:5173`.
 2. **Review Status**: Verify that the top navigation bar displays a green **"Backend & SQLite Ready"** badge.
@@ -765,7 +765,7 @@ docker compose down -v
 
 ## Z. Faculty Demo Mode
 
-To facilitate evaluation without external API keys or uploaded files, VideoIntel includes a self-contained demonstration engine in `app/services/demo_generator.py`:
+To facilitate evaluation without external API keys or uploaded files, MeetingMind includes a self-contained demonstration engine in `app/services/demo_generator.py`:
 
 1. **Media Generation**: Upon startup, `ensure_demo_media()` verifies the presence of demo media in `backend/demo_data/`.
 2. **Synthetic Video**: If not present, it programmatically generates an MP4 video using OpenCV containing 3 distinct visual slides:
@@ -901,10 +901,10 @@ npm run build
 ## AH. Technical Interview Preparation
 
 ### 1. 30-Second Elevator Pitch
-> *"VideoIntel is an end-to-end multimodal meeting intelligence platform. Unlike traditional speech-to-text tools that only process audio, VideoIntel fuses OpenCV computer vision to detect slide transitions and keyframes, speech transcription, and supporting documents. It extracts structured, evidence-backed action items, decisions, and topics without hallucination, and automatically compiles them into publication-ready PDF and editable Word reports. It features a dual-engine architecture that runs both with cloud LLMs and completely offline with Scikit-learn and TextRank."*
+> *"MeetingMind is an end-to-end multimodal meeting intelligence platform. Unlike traditional speech-to-text tools that only process audio, MeetingMind fuses OpenCV computer vision to detect slide transitions and keyframes, speech transcription, and supporting documents. It extracts structured, evidence-backed action items, decisions, and topics without hallucination, and automatically compiles them into publication-ready PDF and editable Word reports. It features a dual-engine architecture that runs both with cloud LLMs and completely offline with Scikit-learn and TextRank."*
 
 ### 2. 2-Minute Technical Walkthrough
-> *"Architecturally, VideoIntel is built as a decoupled full-stack application with a React 19 / Vite 6 frontend and an asynchronous FastAPI backend backed by SQLAlchemy 2.0 and SQLite.*
+> *"Architecturally, MeetingMind is built as a decoupled full-stack application with a React 19 / Vite 6 frontend and an asynchronous FastAPI backend backed by SQLAlchemy 2.0 and SQLite.*
 >
 > *When a video is uploaded, the backend splits processing across two streams: OpenCV downsamples frames to 160x90 grayscale and uses inter-frame difference thresholding to detect slide transitions and save keyframe screenshots. Simultaneously, FFmpeg extracts a 16 kHz mono WAV file, which is transcribed via OpenAI Whisper or a local acoustic fallback.*
 >
@@ -926,14 +926,14 @@ npm run build
 ## AI. Interview Questions and Answers
 
 ### Architecture & System Design
-#### Q1: What core problem does VideoIntel solve that existing meeting tools do not?
-*Answer*: Existing tools focus almost exclusively on audio-to-text transcription. They lose visual presentation context (slides, diagrams), produce unformatted transcripts, and lack evidence linking. VideoIntel integrates computer vision (OpenCV) with audio transcription and supporting documents, generating structured reports where every task and decision cites exact dialogue evidence.
+#### Q1: What core problem does MeetingMind solve that existing meeting tools do not?
+*Answer*: Existing tools focus almost exclusively on audio-to-text transcription. They lose visual presentation context (slides, diagrams), produce unformatted transcripts, and lack evidence linking. MeetingMind integrates computer vision (OpenCV) with audio transcription and supporting documents, generating structured reports where every task and decision cites exact dialogue evidence.
 
 #### Q2: Why did you choose FastAPI over Flask or Django for the backend?
 *Answer*: FastAPI provides native asynchronous ASGI support (`async/await`), enabling non-blocking database queries and efficient streaming of large file uploads. Additionally, its built-in Pydantic schema validation and automated OpenAPI Swagger documentation significantly accelerated frontend-backend integration.
 
 #### Q3: Why is React 19 and Vite used for the frontend instead of server-side rendering (Next.js)?
-*Answer*: VideoIntel is an internal analytics dashboard where SEO is not a primary concern. A Vite-powered Single-Page Application (SPA) provides near-instant Hot Module Replacement during development, minimal bundle overhead, and client-side responsiveness when interacting with media players, keyframes, and multi-tab dashboards.
+*Answer*: MeetingMind is an internal analytics dashboard where SEO is not a primary concern. A Vite-powered Single-Page Application (SPA) provides near-instant Hot Module Replacement during development, minimal bundle overhead, and client-side responsiveness when interacting with media players, keyframes, and multi-tab dashboards.
 
 ---
 
@@ -981,7 +981,7 @@ Sentences with the highest centrality scores are selected in chronological order
 ## AJ. Resume-Ready Project Description
 
 ```text
-VideoIntel — AI-Powered Meeting & Video Intelligence Knowledge Platform
+MeetingMind — AI-Powered Meeting & Meeting Intelligence Knowledge Platform
 Technologies: Python, FastAPI, React 19, TypeScript, OpenCV, FFmpeg, Scikit-Learn, ReportLab, python-docx, SQLAlchemy, SQLite, Docker
 
 - Engineered an end-to-end multimodal meeting intelligence platform that ingests video, audio, and presentation decks to generate publication-grade PDF and Word intelligence reports.
@@ -995,11 +995,53 @@ Technologies: Python, FastAPI, React 19, TypeScript, OpenCV, FFmpeg, Scikit-Lear
 
 ## AK. Screenshots and Visual Documentation
 
-*The application interface includes:*
-- **Storytelling Landing View**: Interactive pipeline presentation and problem overview (`frontend/src/assets/hero.png`).
-- **Multimodal Progress Overlay**: 5-stage progress indicator with animated timers.
-- **Intelligence Dashboard**: Multi-tab view displaying executive summaries, visual keyframes, action item matrices, sentiment dials, and verbatim transcripts.
-- **Saved Sessions Archive**: Historical session table with persistent SQLite storage.
+Below are working visual documentation captures and model outputs produced by MeetingMind's multimodal pipeline:
+
+### 1. Model Executive Report & Analysis Overview
+The MeetingMind AI engine compiles full session metadata, technical specifications, and executive summaries with evidence traceability:
+
+<p align="center">
+  <img src="docs/screenshots/01_model_executive_summary.png" alt="MeetingMind Model Executive Summary" width="750" />
+</p>
+
+### 2. OpenCV Visual Slide & Keyframe Analysis
+The computer vision sub-pipeline analyzes frame-to-frame luminance variance to automatically extract transition keyframes and slide moments:
+
+<p align="center">
+  <img src="docs/screenshots/02_opencv_keyframe_analysis.png" alt="OpenCV Keyframe Slide Analysis" width="750" />
+</p>
+
+### 3. Detected Visual Keyframe Transitions (OpenCV Model)
+Raw slide moments captured at timestamped transitions during session recording:
+
+<p align="center">
+  <img src="docs/screenshots/keyframe_slide_01.jpg" alt="Keyframe Slide 01" width="280" />
+  &nbsp;
+  <img src="docs/screenshots/keyframe_slide_02.jpg" alt="Keyframe Slide 02" width="280" />
+  &nbsp;
+  <img src="docs/screenshots/keyframe_slide_03.jpg" alt="Keyframe Slide 03" width="280" />
+</p>
+
+### 4. Semantic Discussion & Topic Modeling
+Dialogue streams cross-referenced with document structure using TF-IDF ranking and TextRank graph centrality:
+
+<p align="center">
+  <img src="docs/screenshots/03_semantic_topics_discussion.png" alt="Semantic Discussion and Topic Modeling" width="750" />
+</p>
+
+### 5. Verified Action Items & Formal Decisions Matrix
+Action items categorized with assignee tags, urgency, context, and exact evidence quotes alongside formal agreements:
+
+<p align="center">
+  <img src="docs/screenshots/04_action_items_decisions.png" alt="Action Items and Decisions Matrix" width="750" />
+</p>
+
+### 6. Official Verification Record & Audit Seal
+Two-pass publication verification ensuring complete traceability back to raw dialogue:
+
+<p align="center">
+  <img src="docs/screenshots/05_verification_audit_seal.png" alt="Verification Audit Seal" width="750" />
+</p>
 
 ---
 

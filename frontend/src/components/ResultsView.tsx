@@ -103,7 +103,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ session, onNewAnalysis
     setDownloadNotification(null);
     setIsDownloadingFullPdf(true);
     try {
-      await downloadFileBlob(fullPdfUrl, `VideoIntel_Executive_Report_${session.id}.pdf`);
+      await downloadFileBlob(fullPdfUrl, `MeetingMind_Executive_Report_${session.id}.pdf`);
       setDownloadNotification('Executive PDF Report downloaded successfully.');
     } catch (err: any) {
       setDownloadNotification(`Failed to download Executive PDF: ${err.message || err}`);
@@ -116,7 +116,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ session, onNewAnalysis
     setDownloadNotification(null);
     setIsDownloadingTransPdf(true);
     try {
-      await downloadFileBlob(transPdfUrl, `VideoIntel_Transcript_${session.id}.pdf`);
+      await downloadFileBlob(transPdfUrl, `MeetingMind_Transcript_${session.id}.pdf`);
       setDownloadNotification('Transcript PDF downloaded successfully.');
     } catch (err: any) {
       setDownloadNotification(`Failed to download Transcript PDF: ${err.message || err}`);
@@ -309,7 +309,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ session, onNewAnalysis
             onClick={handleDownloadFullPdf}
             disabled={isDownloadingFullPdf}
             className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer disabled:opacity-50"
-            title="Download official VideoIntel Executive Report (PDF)"
+            title="Download official MeetingMind Executive Report (PDF)"
           >
             {isDownloadingFullPdf ? (
               <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -1472,7 +1472,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ session, onNewAnalysis
               <span>Multimodal Architecture & AI Specifications</span>
             </h2>
             <p className="text-xs text-slate-400">
-              Technical pipeline specifications powering VideoIntel report generation.
+              Technical pipeline specifications powering MeetingMind report generation.
             </p>
           </div>
 

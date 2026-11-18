@@ -26,7 +26,7 @@ logger = structlog.get_logger()
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan — startup and shutdown events."""
     logger.info(
-        "Starting Video Intelligence Application",
+        "Starting MeetingMind Application",
         app_name=settings.app_name,
         environment=settings.app_env,
     )
@@ -50,14 +50,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    logger.info("Shutting down Video Intelligence Application")
+    logger.info("Shutting down MeetingMind Application")
 
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     app = FastAPI(
         title=settings.app_name,
-        description="AI-Powered Meeting & Video Intelligence Report Generator",
+        description="AI-Powered Meeting Intelligence Report Generator",
         version="0.1.0",
         docs_url="/docs" if settings.is_development else None,
         redoc_url="/redoc" if settings.is_development else None,

@@ -26,7 +26,7 @@ export const SessionsHistory: React.FC<SessionsHistoryProps> = ({
 }) => {
   const handleDownloadPdf = async (sess: MeetingSession) => {
     try {
-      await downloadFileBlob(getPdfDownloadUrl(sess.id), `VideoIntel_Executive_Report_${sess.id}.pdf`);
+      await downloadFileBlob(getPdfDownloadUrl(sess.id), `MeetingMind_Executive_Report_${sess.id}.pdf`);
     } catch {
       window.location.href = getPdfDownloadUrl(sess.id);
     }

@@ -1,5 +1,5 @@
 """
-End-to-End Pipeline Tests for VideoIntel.
+End-to-End Pipeline Tests for MeetingMind.
 Tests the full multimodal session processing, PDF generation, and persistence.
 """
 

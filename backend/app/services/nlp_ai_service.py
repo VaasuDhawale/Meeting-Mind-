@@ -201,7 +201,7 @@ def run_local_ml_pipeline(
         flags=re.MULTILINE | re.IGNORECASE,
     ).strip()
 
-    title = session_title or "Video Intelligence Report"
+    title = session_title or "Meeting Intelligence Report"
     duration_seconds = float(video_metadata.get("duration_seconds", 60.0))
     raw_segments = transcript_segments or []
 

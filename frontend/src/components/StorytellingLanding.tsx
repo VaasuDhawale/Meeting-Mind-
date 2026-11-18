@@ -320,7 +320,7 @@ export const StorytellingLanding: React.FC<StorytellingLandingProps> = ({
 
         {/* Scroll hint */}
         <div className="mt-14 flex flex-col items-center space-y-1.5 text-xs text-slate-500 reveal-child">
-          <span>Scroll to discover how VideoIntel works</span>
+          <span>Scroll to discover how MeetingMind works</span>
           <ArrowDown className="w-4 h-4 animate-bounce text-slate-400" />
         </div>
       </section>
@@ -381,7 +381,7 @@ export const StorytellingLanding: React.FC<StorytellingLandingProps> = ({
 
             <div className="mt-6 pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2">
               <span>⚠️ Manual meeting notes miss up to 60% of technical action items and visual context.</span>
-              <span className="text-blue-400 font-semibold">So we built VideoIntel →</span>
+              <span className="text-blue-400 font-semibold">So we built MeetingMind →</span>
             </div>
           </div>
         </div>
@@ -403,7 +403,7 @@ export const StorytellingLanding: React.FC<StorytellingLandingProps> = ({
             One session. Multiple sources.
           </h2>
           <p className="mt-3 text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            VideoIntel combines what was said, what was shown, and what was provided.
+            MeetingMind combines what was said, what was shown, and what was provided.
           </p>
         </div>
 
@@ -475,7 +475,7 @@ export const StorytellingLanding: React.FC<StorytellingLandingProps> = ({
             03 • AI Intelligence Engine
           </span>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white mt-4 tracking-tight">
-            VideoIntel doesn&apos;t just transcribe the meeting.
+            MeetingMind doesn&apos;t just transcribe the meeting.
           </h2>
           <p className="mt-3 text-lg text-indigo-300 font-semibold">
             It understands the context.
@@ -696,7 +696,7 @@ export const StorytellingLanding: React.FC<StorytellingLandingProps> = ({
             Ready to turn your next meeting into intelligence?
           </h2>
           <p className="mt-3 text-base text-slate-400 leading-relaxed">
-            Upload your recording and let VideoIntel execute the complete multimodal pipeline.
+            Upload your recording and let MeetingMind execute the complete multimodal pipeline.
           </p>
 
           <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-400">

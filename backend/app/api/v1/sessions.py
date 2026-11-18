@@ -243,7 +243,7 @@ async def run_faculty_demo(db: AsyncSession = Depends(get_db)) -> dict[str, Any]
         video_metadata=video_meta,
         document_structure=doc_structure,
         transcript_segments=trans_segments,
-        session_title="Faculty Demo: Multimodal Video Intelligence Review",
+        session_title="Faculty Demo: Multimodal Meeting Intelligence Review",
     )
 
     # Augment keyframes with quotes & evidence timestamps
@@ -261,7 +261,7 @@ async def run_faculty_demo(db: AsyncSession = Depends(get_db)) -> dict[str, Any]
 
     session = MeetingSession(
         id=session_id,
-        title="Faculty Demo: Multimodal Video Intelligence Review",
+        title="Faculty Demo: Multimodal Meeting Intelligence Review",
         status="completed",
         source_filename="faculty_demo_meeting.mp4",
         source_file_type="video",
@@ -424,7 +424,7 @@ async def download_pdf_report(
         session.pdf_path = pdf_path
         await db.commit()
 
-    filename = f"VideoIntel_Executive_Report_{session_id}.pdf"
+    filename = f"MeetingMind_Executive_Report_{session_id}.pdf"
     headers = {
         "Content-Disposition": f'{"inline" if inline else "attachment"}; filename="{filename}"',
     }
@@ -500,7 +500,7 @@ async def download_transcript_pdf(
     if not transcript_pdf_path or not os.path.exists(transcript_pdf_path):
         raise HTTPException(status_code=500, detail="Could not generate transcript PDF")
 
-    filename = f"VideoIntel_Transcript_{session_id}.pdf"
+    filename = f"MeetingMind_Transcript_{session_id}.pdf"
     headers = {
         "Content-Disposition": f'{"inline" if inline else "attachment"}; filename="{filename}"',
     }

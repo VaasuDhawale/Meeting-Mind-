@@ -87,7 +87,7 @@ def ensure_demo_media() -> tuple[str, str]:
     width, height = 960, 540
     fps = 20
     slides_info = [
-        ("DEMO DATA: SLIDE 1 - PROJECT OVERVIEW", "AI Multimodal Video Intelligence System", (30, 40, 60), 3 * fps),
+        ("DEMO DATA: SLIDE 1 - PROJECT OVERVIEW", "MeetingMind: Multimodal Meeting Intelligence System", (30, 40, 60), 3 * fps),
         ("DEMO DATA: SLIDE 2 - ARCHITECTURAL PIPELINE", "OpenCV Video Analysis + Speech-to-Text + NLP", (20, 60, 40), 3 * fps),
         ("DEMO DATA: SLIDE 3 - ACTION ITEMS & RESULTS", "Decisions Approved | Report Generated", (60, 30, 20), 2 * fps),
     ]
