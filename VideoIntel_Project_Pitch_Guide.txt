@@ -1,0 +1,498 @@
+================================================================================
+  VIDEOINTEL -- PROJECT PITCH GUIDE & TECHNICAL REFERENCE
+  AI-Powered Meeting & Video Intelligence Report Generator
+  PBL Final Year Project
+================================================================================
+
+This document covers:
+  1. Complete Technology Stack
+  2. How VideoIntel Uses LLMs (and which ones)
+  3. Can VideoIntel Work Offline?
+  4. Project Pitch -- Frequently Asked Questions & Model Answers
+
+================================================================================
+SECTION 1: COMPLETE TECHNOLOGY STACK
+================================================================================
+
+--- FRONTEND ---
+  Framework        : React 19.2 (with Vite 6.1 build tool)
+  Language         : TypeScript / JavaScript (ES2022+)
+  Styling          : Tailwind CSS v4
+  Routing          : React Router (SPA, client-side routing)
+  HTTP Client      : Axios (REST calls to FastAPI backend)
+  State Management : React Context + useState/useEffect hooks
+  Dev Server       : Vite HMR (Hot Module Replacement)
+  Build Output     : Static bundle served from dist/
+
+--- BACKEND ---
+  Language         : Python 3.12
+  Web Framework    : FastAPI 0.115+ (ASGI, async-first)
+  ASGI Server      : Uvicorn (with standard extras: watchfiles, websockets)
+  API Style        : RESTful JSON; endpoints under /api/v1/
+  Authentication   : JWT (python-jose + passlib/bcrypt) with access + refresh tokens
+  Validation       : Pydantic v2 (request/response schemas, settings)
+  Configuration    : pydantic-settings (reads .env file)
+  Logging          : structlog (structured JSON logs)
+  File Uploads     : python-multipart (multipart/form-data)
+  HTTP Client      : httpx (async; used internally for API calls to cloud LLMs)
+
+--- DATABASE ---
+  Primary DB       : SQLite (development) / PostgreSQL-ready (production)
+  ORM              : SQLAlchemy 2.0 with async (aiosqlite driver for SQLite)
+  Migrations       : Alembic
+  Async Driver     : aiosqlite (SQLite) / asyncpg (PostgreSQL)
+  Vector Extension : pgvector (PostgreSQL only -- for future embedding search)
+
+--- TASK QUEUE / BACKGROUND PROCESSING ---
+  Queue System     : Celery 5.4
+  Broker           : Redis (celery_broker_url = redis://localhost:6379/1)
+  Result Backend   : Redis (celery_result_backend = redis://localhost:6379/2)
+  Cache            : Redis (redis://localhost:6379/0)
+
+--- OBJECT STORAGE ---
+  Storage Backend  : MinIO (S3-compatible; optional for production)
+  Local Fallback   : Direct filesystem storage under storage/ directory
+  Report Storage   : storage/reports/{session_id}/
+  Upload Storage   : storage/uploads/{session_id}/
+  Keyframes        : storage/keyframes/{session_id}/
+
+--- MEDIA PROCESSING ---
+  Video Decoding   : OpenCV-Python (cv2) -- scene/slide detection, keyframe extraction
+  Audio Extraction : FFmpeg (ffmpeg -i input -ar 16000 -ac 1 -f wav output.wav)
+  Audio I/O        : scipy.io.wavfile (float32 WAV loading), SpeechRecognition
+  Video Metadata   : cv2.VideoCapture (fps, frame count, duration)
+  File Type Check  : python-magic / python-magic-bin (MIME header validation)
+  Document Parser  : PyPDF / pdfplumber (PDF), python-pptx (PPTX), plain text
+
+--- TRANSCRIPTION / SPEECH-TO-TEXT (Priority Order) ---
+  1. OpenAI Whisper API    : Cloud API (whisper-1 model), requires OPENAI_API_KEY
+                             Returns verbatim text + timestamped segments
+  2. AssemblyAI            : Cloud API, requires ASSEMBLYAI_API_KEY
+                             Returns word-level timing + speaker labels
+  3. Faster-Whisper (Local): faster-whisper Python package
+                             Neural model (base/tiny), CPU, int8 compute
+                             100% offline, zero cost, near-Whisper quality
+  4. SpeechRecognition     : Google Web Speech fallback (chunked, 15s windows)
+
+--- AI / ML & NLP PIPELINE ---
+  Cloud LLMs:
+    OpenAI GPT-4o-mini       : gpt-4o-mini model via OpenAI Python SDK
+    Google Gemini 1.5 Flash  : gemini-1.5-flash via REST API
+
+  Local ML/NLP (offline -- no API keys needed):
+    scikit-learn             : TfidfVectorizer (unigram + bigram, max 25 features)
+                               cosine_similarity (for TextRank sentence graph)
+    NumPy                    : Matrix operations, PageRank power iteration
+    TextRank Algorithm       : Graph-based extractive summarization
+                               TF-IDF cosine similarity + PageRank, d=0.85, 25 iters
+    Regex (re module)        : Rule-based action item, decision, question extraction
+    Lexical Sentiment        : Token-set scoring (positive/negative word sets)
+
+--- REPORT GENERATION ---
+  PDF Reports      : ReportLab (SimpleDocTemplate, Paragraph, Table, Image)
+                     Custom NumberedCanvas for two-pass page numbering
+  Word Reports     : python-docx (native .docx; XML-level cell shading, borders)
+  Markdown         : Standard Python string formatting
+  Plain Text       : UTF-8 .txt export
+  JSON             : Structured schema export (FastAPI JSON response)
+
+--- CONTAINERIZATION & DEVOPS ---
+  Docker           : Dockerfile for backend; docker-compose.yml for full stack
+  CI-Ready         : pyproject.toml with ruff (linting), mypy (type checking)
+  Testing          : pytest 8.0 + pytest-asyncio (18 tests passing)
+  Code Quality     : ruff (E, W, F, I, N, UP, B, S, T20, SIM rules)
+  Type Checking    : mypy (strict mode for app/ package)
+
+================================================================================
+SECTION 2: HOW VIDEOINTEL USES LLMs
+================================================================================
+
+VideoIntel supports two cloud LLMs as optional, configuration-driven providers.
+Both require the user to supply their own API key via .env or the frontend
+settings panel. If no key is present, the system falls back to the fully local
+ML pipeline (Section 3).
+
+LLM 1: OpenAI GPT-4o-mini
+  Model       : gpt-4o-mini
+  SDK         : openai Python package (OpenAI())
+  Cost        : ~$0.15 / 1M input tokens (cheapest GPT-4 class model)
+  Context     : Up to 14,000 characters of combined transcript + document text
+  Output      : JSON mode (response_format={"type": "json_object"})
+  Temperature : 0.2 (low, for factual, deterministic output)
+  Used for    : Full intelligence report (summary, key points, action items,
+                decisions, risks, topics, sentiment)
+
+LLM 2: Google Gemini 1.5 Flash
+  Model       : gemini-1.5-flash
+  Endpoint    : https://generativelanguage.googleapis.com/v1beta/
+  SDK         : httpx async REST call (no Google SDK dependency)
+  Output      : application/json (response_mime_type)
+  Temperature : 0.2
+  Used for    : Identical pipeline to GPT-4o-mini (fallback when OpenAI fails)
+
+--- HOW THE LLM IS PROMPTED ---
+  a) System role: Professional Video + Meeting Intelligence AI
+  b) Session type classification instruction (educational vs. business)
+  c) Strict rules: no hallucinated action items, no fabricated deadlines,
+     all timestamps must be video-relative MM:SS format
+  d) Combined text (transcript + document, max 14,000 chars)
+  e) A precise JSON schema the model MUST return
+
+  JSON keys requested from the LLM:
+    session_type, summary, meeting_overview, key_discussion_points,
+    decisions, action_items, open_questions, risks_blockers,
+    important_moments, topics_mind_map, topics, sentiment, speakers
+
+--- LLM SELECTION PRIORITY ---
+  Priority 1 -> OpenAI GPT-4o-mini     (if OPENAI_API_KEY configured)
+  Priority 2 -> Google Gemini 1.5 Flash (if GOOGLE_AI_API_KEY configured)
+  Priority 3 -> Local ML Pipeline       (always available, no API needed)
+
+--- WHAT THE LLM DOES NOT DO ---
+  - Transcription: handled by Whisper / AssemblyAI / local models
+  - Video processing: handled by OpenCV and FFmpeg
+  - PDF/DOCX generation: handled by ReportLab and python-docx
+  - Keyframe alignment: always handled by local ML pipeline
+  - Timestamp computation: always done deterministically from segment data
+
+================================================================================
+SECTION 3: CAN VIDEOINTEL WORK OFFLINE?
+================================================================================
+
+SHORT ANSWER: YES -- VideoIntel has a complete offline mode.
+
+--- WHAT WORKS FULLY OFFLINE ---
+  Audio Extraction            FFmpeg (installed locally)
+  Speech-to-Text              Faster-Whisper (Local Neural Model)
+                              -> Downloads weights once on first run
+                              -> All subsequent runs: fully offline
+                              OR SpeechRecognition with CMU Sphinx engine
+  Video Processing            OpenCV (pure local library)
+  NLP / Summarization         scikit-learn TF-IDF + TextRank (local Python)
+  Action Item Extraction      Regex-based rule engine (local Python)
+  Report Generation           ReportLab (PDF) + python-docx (DOCX)
+  Database                    SQLite with aiosqlite (local file)
+  Web Server                  FastAPI + Uvicorn on localhost:8000
+  Frontend                    React/Vite on localhost:5173 (npm run dev)
+
+--- WHAT REQUIRES INTERNET / API KEYS ---
+  OpenAI Whisper API          OPENAI_API_KEY
+  AssemblyAI                  ASSEMBLYAI_API_KEY
+  OpenAI GPT-4o-mini          OPENAI_API_KEY
+  Google Gemini 1.5 Flash     GOOGLE_AI_API_KEY
+  MinIO Object Storage        Network endpoint (optional)
+  Redis                       Local Redis instance (in docker-compose)
+
+--- OFFLINE QUALITY NOTE ---
+  Faster-Whisper (base): approx. Whisper API quality on clear audio
+  Faster-Whisper (tiny): slightly lower accuracy, faster
+  SpeechRecognition (Sphinx): significantly lower accuracy on noisy audio
+  Local NLP: Extractive only (copies actual sentences, no synthesis)
+
+================================================================================
+SECTION 4: PROJECT PITCH -- QUESTIONS & MODEL ANSWERS
+================================================================================
+
+Q1. What is VideoIntel and what problem does it solve?
+------------------------------------------------------
+VideoIntel is an AI-powered multimodal intelligence platform that converts raw
+meeting recordings, lecture videos, and audio files into structured, actionable
+intelligence reports. It solves five problems:
+(1) High review overhead of long recordings
+(2) Loss of visual context when slides or diagrams are shown
+(3) Unstructured, non-actionable raw transcripts
+(4) AI hallucination of decisions and assignees
+(5) Need for multiple export formats (PDF, DOCX, JSON, Markdown)
+
+Q2. How does the AI pipeline work end-to-end?
+----------------------------------------------
+Stage 1 -- Media Decomposition: FFmpeg extracts 16 kHz mono WAV audio.
+OpenCV detects scene transitions and saves keyframe screenshots.
+Stage 2 -- Speech-to-Text: Whisper (cloud or local) converts WAV to
+timestamped transcript segments.
+Stage 3 -- NLP Intelligence: Combined transcript + document text processed
+by GPT-4o-mini, Gemini 1.5 Flash, or local TF-IDF + TextRank + regex rules.
+Stage 4 -- Report Compilation: ReportLab and python-docx produce PDF, DOCX,
+Markdown, and JSON outputs.
+
+Q3. Which LLMs are used? Why those specific models?
+------------------------------------------------------
+GPT-4o-mini and Gemini 1.5 Flash. Chosen because:
+- Both support structured JSON output mode natively (schema compliance)
+- Most cost-effective GPT-4/Gemini-tier models
+- GPT-4o-mini: ~$0.15/1M tokens; balances quality and cost
+- Gemini 1.5 Flash: fast, free-tier available, good fallback
+- Temperature = 0.2 (near-deterministic) to minimize hallucination
+
+Q4. What if no API key is provided? Does the system still work?
+----------------------------------------------------------------
+Yes -- fully. The fallback local pipeline:
+  Transcription -> Faster-Whisper (local neural model, CPU, int8 quant)
+  NLP Summary   -> TextRank (graph-based extractive summarization)
+  Topics        -> scikit-learn TF-IDF vectorizer
+  Action Items  -> Regex-based lexical extraction
+Zero-cost and fully functional offline -- key differentiator over Otter.ai.
+
+Q5. How do you prevent the LLM from hallucinating?
+----------------------------------------------------
+1. Structured JSON output mode -- LLM must conform to predefined schema
+2. Temperature 0.2 -- near-deterministic decoding
+3. Explicit prompt: return [] for action_items if none found
+4. Session type classification -- educational videos get empty arrays
+   for action_items and decisions
+5. Local ML fallback is purely extractive (copies actual transcript text)
+6. Every output item has an `evidence` field with a verbatim quote
+
+Q6. How does transcription work? What is Faster-Whisper?
+---------------------------------------------------------
+Priority cascade:
+  1. OpenAI Whisper API (cloud, highest accuracy)
+  2. AssemblyAI (cloud, with speaker diarization)
+  3. Faster-Whisper (local, offline, neural model)
+  4. SpeechRecognition (acoustic fallback)
+
+Faster-Whisper is a CTranslate2 re-implementation of OpenAI Whisper.
+Runs on CPU using int8 quantization -- 2-4x faster than standard Whisper.
+The 'base' model (~142 MB) provides near-API-level accuracy on clear speech.
+
+Q7. What is TextRank and why use it?
+--------------------------------------
+TextRank is a graph-based extractive summarization algorithm (PageRank applied
+to sentences). Sentences are nodes; edges weighted by TF-IDF cosine similarity.
+PageRank (d=0.85, 25 iterations) scores each sentence.
+Why: (1) fully offline, (2) never fabricates -- every sentence is verbatim,
+(3) domain-agnostic, (4) no GPU or API needed.
+
+Q8. How does the computer vision component work?
+-------------------------------------------------
+OpenCV samples every Nth frame. For consecutive frame pairs, computes mean
+absolute pixel difference on 160x90 grayscale image. When difference exceeds
+threshold, scene change detected and frame saved as JPEG keyframe.
+Visual Activity Index = (scene changes / total sampled frames) x 100%.
+Keyframes aligned to nearest transcript segment for evidence in the report.
+
+Q9. Why FastAPI instead of Django or Flask?
+---------------------------------------------
+1. Native async/await -- media processing and DB I/O are I/O-bound
+2. Automatic OpenAPI docs -- Swagger UI at /docs from Pydantic schemas
+3. Type safety -- Pydantic v2 validates all request payloads at runtime
+Flask lacks native async; Django is heavier and ORM-coupled.
+
+Q10. Why React + Vite instead of Next.js?
+-------------------------------------------
+VideoIntel is a dashboard SPA -- instant navigation without full-page reloads.
+Vite uses native ES modules and esbuild for sub-100ms cold starts and instant HMR.
+Next.js adds SSR complexity not needed for a private dashboard tool.
+
+Q11. Why SQLite in development?
+---------------------------------
+Zero configuration -- no separate database process or Docker service needed.
+SQLAlchemy 2.0 with aiosqlite makes all queries non-blocking.
+For production, DATABASE_URL switches to PostgreSQL with one env variable change.
+
+Q12. What export formats does VideoIntel support?
+--------------------------------------------------
+1. PDF (Executive Report) -- ReportLab; keyframe images, tables, colors
+2. PDF (Transcript) -- dedicated verbatim timestamped transcript PDF
+3. DOCX (Word) -- python-docx; XML-level cell shading
+4. Markdown (.md) -- human-readable structured text
+5. JSON -- structured data API response
+6. Plain Text (.txt) -- simple transcript download
+
+Q13. How does speaker diarization work?
+-----------------------------------------
+Two routes:
+1. AssemblyAI: returns speaker_labels per word (Speaker A, Speaker B...)
+2. Other providers: regex extracts 'Name: dialogue' turns from text.
+Word counts and turn counts per speaker produce speaking time percentages.
+Note: No voice-embedding diarization (pyannote) -- requires GPU.
+
+Q14. How are timestamps handled? What about raw Unix epoch timestamps?
+-----------------------------------------------------------------------
+All report timestamps use video-relative MM:SS (or HH:MM:SS for >1 hr).
+normalize_timestamp_val() handles three types:
+  (a) 'MM:SS' strings -> passed through unchanged
+  (b) Small floats (<100,000) -> treated as seconds-from-video-start
+  (c) Large floats (>100,000) -> detected as Unix epoch; minimum epoch
+      value used as offset; all timestamps converted to relative seconds.
+clean_report_timestamp_string() applies this before PDF rendering.
+
+Q15. What is the Celery / Redis component used for?
+-----------------------------------------------------
+Background task queue for long-running processing. When a user uploads a
+video, HTTP returns a session ID immediately (status = 'processing'). The
+actual pipeline (FFmpeg, Whisper, OpenCV, LLM, PDF) runs as a Celery task.
+Frontend polls status endpoint until status = 'completed'. Prevents HTTP
+timeouts and allows concurrent processing of multiple videos.
+
+Q16. What are the known limitations?
+--------------------------------------
+1. Transcription accuracy depends on audio quality (noise, accents)
+2. Speaker diarization without AssemblyAI cannot distinguish by voice
+3. Local NLP is extractive -- cannot synthesize or rephrase concepts
+4. Action item regex may miss unusually phrased or non-English items
+5. 60-minute video locally: 8-15 minutes on mid-range CPU
+6. CJK/Arabic scripts need additional tokenization
+
+Q17. How is security handled?
+-------------------------------
+- JWT authentication (access + refresh tokens, python-jose + bcrypt)
+- File type validation via MIME header inspection (not just extension)
+- Filename sanitization (regex stripping path traversal characters)
+- File size limits (configurable; default 500 MB)
+- CORS configured to whitelisted origins only
+- SQL injection prevention via SQLAlchemy ORM parameterized queries
+- API keys in environment variables, never hardcoded
+- Media files purged after configurable days (default 7)
+
+Q18. What makes VideoIntel different from Otter.ai or Fireflies.ai?
+---------------------------------------------------------------------
+1. Fully offline capability -- competitors require cloud
+2. Multimodal: combines audio + visual keyframes + documents; most tools
+   are audio-only
+3. Anti-hallucination design -- every output has verbatim `evidence`
+4. Multi-format export in one pipeline (PDF, DOCX, MD, JSON, TXT)
+5. Open architecture -- plug in own API keys; no vendor lock-in
+6. Educational video intelligence -- correctly handles non-meeting content
+7. No subscription required -- runs locally, zero recurring cost
+
+Q19. What future improvements would you add?
+----------------------------------------------
+1. Real-time transcription via WebSocket (stream as meeting runs)
+2. Voice-embedding speaker diarization (pyannote-audio, WhisperX)
+3. RAG -- semantic search across past reports using pgvector embeddings
+4. Browser extension / Zoom plugin for live meeting capture
+5. Multi-language NLP pipeline (Hindi, French, German)
+6. Collaborative annotations in-browser
+7. Email/Slack delivery of PDF reports post-processing
+8. Automatic follow-up email drafts from extracted action items
+
+Q20. How did you test the system?
+------------------------------------
+18 pytest test cases covering:
+- API endpoint validation (upload, status polling, download routes)
+- Media service unit tests (format detection, sanitization)
+- Transcription service unit tests (segment formatting, normalization)
+- NLP pipeline unit tests (TF-IDF extraction, TextRank summarization)
+- PDF/DOCX integration tests (report generation with mock data)
+- Database session CRUD operations
+End-to-end tested with two real videos:
+(1) 'Daily Life of Human Organs -- Organismo' (educational animated short)
+(2) Simulated business meeting with agenda documents
+
+Q21. What was the hardest technical challenge?
+------------------------------------------------
+Three significant challenges:
+1. Unix epoch timestamp contamination: Some sources embed raw epoch values
+   (e.g., 1790534708) in segment start times. Built normalize_timestamp_val()
+   to detect epoch-scale floats, compute min as base offset, convert all to
+   video-relative seconds.
+2. LLM hallucination suppression: Early versions invented assignees and
+   deadlines. Fixed via JSON schema enforcement, temperature 0.2, and
+   session-type classification (educational -> empty action_items).
+3. PyAV + Faster-Whisper incompatibility: PyAV version conflicts in
+   faster-whisper audio loading. Fixed by loading WAV as float32 NumPy
+   array via scipy and passing the array directly to model.transcribe().
+
+Q22. How does TF-IDF topic extraction work specifically?
+---------------------------------------------------------
+TfidfVectorizer (scikit-learn) configured with:
+  - stop_words='english' (removes common words)
+  - ngram_range=(1, 2) (single words and two-word phrases)
+  - max_features=25 (top 25 terms by document frequency)
+Vectorizer fits on the cleaned transcript (single document). TF-IDF score
+matrix sorted descending; top 8 terms with score > 0.04 and length > 3
+become topics. Relevance = min(1.0, score x 2.2).
+Custom stopwords remove domain noise: 'yeah', 'just', 'video', 'meeting'.
+
+Q23. What does the `evidence` field represent?
+------------------------------------------------
+A verbatim quote from the input transcript that directly supports the extracted
+insight. Example: action item 'complete API documentation' has evidence =
+'John will complete the API documentation by Friday.' This lets auditors
+verify every AI claim against source material. If no evidence, item omitted.
+
+Q24. How does session type classification work?
+-------------------------------------------------
+detect_session_type() classifies into 'educational_video', 'business_meeting',
+or 'informational_video'. Checks educational keywords (organ, biology, lecture,
+tutorial, documentary, etc.) in title + transcript. Checks if supporting document
+contains meeting terms (agenda, attendees, action items, sprint sync).
+If speakers appear in 'Name: dialogue' format (>=3 turns), defaults to
+'business_meeting'. Educational videos never get fabricated action_items.
+
+Q25. What is the Visual Activity Index?
+-----------------------------------------
+A percentage metric (0-100%) measuring video visual dynamism:
+  (scene changes / total sampled frames) x 100%
+High (>60%): fast-paced slides, animation, screen recordings.
+Low (<15%): talking-head, static camera.
+Appears in executive summary; helps readers understand keyframe coverage.
+
+Q26. Can VideoIntel process audio-only files?
+----------------------------------------------
+Yes. Supported: .mp3, .wav, .m4a, .ogg, .flac, .aac.
+OpenCV video processing is skipped. Audio goes directly to transcription.
+Report generated without keyframe screenshots (visual activity index = 0).
+All NLP extraction and report export work identically.
+
+Q27. What is Alembic used for?
+--------------------------------
+Alembic is the SQLAlchemy migration framework. It tracks schema changes as
+versioned migration scripts. Adding a new column runs a delta migration instead
+of dropping the database. The backend also has a startup migration guard that
+detects missing columns and runs ALTER TABLE to add them automatically.
+
+Q28. What is the Faculty Demo Mode?
+-------------------------------------
+A pre-packaged demo requiring zero file uploads. Uses a synthetic demo video
+with slide graphics, tone-modulated audio, and a sample agenda in demo_data/.
+A single API call to /api/v1/sessions/demo runs the complete pipeline and
+returns a fully generated report. Lets faculty/judges see output without
+preparing their own video or API key.
+
+Q29. Approximate processing time?
+------------------------------------
+Without API (local CPU only):
+  5-minute video  : ~30-60 seconds
+  30-minute video : ~3-7 minutes
+  60-minute video : ~8-15 minutes
+With OpenAI Whisper API:
+  5-minute video  : ~10-20 seconds
+  60-minute video : ~90-180 seconds
+With GPT-4o-mini for intelligence: additional 5-15 seconds per session.
+
+Q30. How would you scale for 10,000 concurrent users?
+------------------------------------------------------
+1. FastAPI + Uvicorn: Multiple stateless instances behind load balancer
+2. Celery Workers: Scale independently on Kubernetes pods
+3. PostgreSQL: Managed PostgreSQL with read replicas
+4. MinIO -> S3: AWS S3 / GCS for media storage
+5. Redis Cluster: For task queue and caching
+6. CDN: Serve static keyframes and frontend via CloudFront
+7. GPU Workers: Separate Celery queue with CUDA instances for Whisper
+   (10-20x transcription throughput)
+
+================================================================================
+QUICK REFERENCE CHEAT SHEET
+================================================================================
+
+  Project Name      : VideoIntel
+  Type              : PBL Final Year Project (AI/ML)
+  Core Language     : Python 3.12 (backend), TypeScript/React 19 (frontend)
+  Web Framework     : FastAPI + Uvicorn (ASGI)
+  Database          : SQLite (dev) / PostgreSQL (prod), SQLAlchemy 2.0 async
+  Task Queue        : Celery + Redis
+  Transcription     : OpenAI Whisper -> AssemblyAI -> Faster-Whisper -> SpeechRecognition
+  NLP               : TF-IDF (scikit-learn) + TextRank (custom PageRank)
+  LLMs              : GPT-4o-mini (OpenAI) / Gemini 1.5 Flash (Google)
+  Video Processing  : OpenCV (scene detection) + FFmpeg (audio extraction)
+  Report Generation : ReportLab (PDF) + python-docx (DOCX)
+  Offline Capable   : YES (Faster-Whisper + local ML pipeline)
+  Export Formats    : PDF, DOCX, Markdown, JSON, Plain Text
+  Tests             : 18 pytest cases (pytest-asyncio)
+  Containerized     : Docker + docker-compose
+
+================================================================================
+END OF DOCUMENT
+================================================================================

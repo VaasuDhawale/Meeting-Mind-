@@ -1,0 +1,19 @@
+DEMO DATA: Final Year Project Technical Review & Architecture Sync
+Attendees: Alex Rivera (Lead Architect), Priya Sharma (ML Engineer), David Chen (Fullstack)
+
+Meeting Agenda:
+1. Multimodal pipeline evaluation: OpenCV video keyframe extraction and audio track separation.
+2. Speech-to-text integration with OpenAI Whisper and local acoustic fallback.
+3. Extractive summarization using TextRank graph ranking and TF-IDF topic modeling.
+4. Action item extraction, assignee tagging, and priority classification.
+5. Automated PDF report generation with ReportLab.
+
+Session Notes & Transcript:
+Alex Rivera: Welcome everyone to the architecture review. Today we need to verify that our multimodal intelligence pipeline is working end to end.
+Priya Sharma: I have completed the OpenCV video frame difference algorithm. It accurately detects slide transitions and visual activity indexes.
+David Chen: How will we handle offline evaluation when external cloud API keys are not provided?
+Alex Rivera: The system automatically delegates to our local scikit-learn TF-IDF and TextRank pipeline for full offline reliability.
+David Chen: The backend API endpoints and React interface are ready. We must complete the integration testing before Friday.
+Alex Rivera: Excellent. We agreed that SQLite with async SQLAlchemy is our persistent store for the standalone faculty evaluation.
+Priya Sharma: Yes, and we decided to support both cloud LLMs and local scikit-learn algorithms for complete reliability without external dependencies.
+Alex Rivera: Perfect. Action item: Priya will prepare the benchmark evaluation report by tomorrow. David will finalize the PDF download and UI layout by Thursday.
